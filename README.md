@@ -1,36 +1,26 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Focusboard
 
-## Getting Started
+Base Next.js organisee autour des features metier.
 
-First, run the development server:
+## Structure
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- `src/app`: routes, layouts et fichiers specifiques a Next.js
+- `src/components/ui`: composants generiques reutilisables
+- `src/components/layout`: shell et mise en page partages
+- `src/features`: logique et composants metier par domaine
+- `src/lib`: utilitaires transverses
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Regles de base
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- Si un fichier est specifique aux taches, au planning, au focus ou aux objectifs, il doit vivre dans la feature concernee.
+- Les routes doivent rester fines et se contenter d&apos;importer un composant d&apos;ecran depuis `src/features`.
+- N&apos;ajoute pas `actions`, `queries`, `schemas`, `providers`, `stores` ou `types` globaux tant qu&apos;ils ne sont pas reels et utilises.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Premier sprint
 
-## Learn More
+- redirection de `/` vers `/dashboard`
+- layout `(app)` avec sidebar, header et contenu responsive
+- dashboard local avec trois taches fictives
+- pages `planning`, `focus` et `tasks` volontairement minimales
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+L&apos;etape Git avec la branche `feat/app-shell` sera faite ensuite, une fois la branche creee.

@@ -2,6 +2,7 @@
 
 import {
   createContext,
+  useEffect,
   useContext,
   useMemo,
   useState,
@@ -10,6 +11,9 @@ import {
 
 import { dailyTasks as initialTasks } from "@/features/tasks/data/daily-tasks";
 import type { DailyTask } from "@/features/tasks/types/task";
+import { readLocalStorage, writeLocalStorage } from "@/lib/local-storage";
+
+const TASKS_STORAGE_KEY = "focusboard:daily-tasks";
 
 type TaskBoardContextValue = {
   tasks: DailyTask[];
@@ -25,7 +29,17 @@ type TaskBoardContextValue = {
 const TaskBoardContext = createContext<TaskBoardContextValue | null>(null);
 
 export function TaskBoardProvider({ children }: { children: ReactNode }) {
-  const [tasks, setTasks] = useState(initialTasks);
+  const [tasks, setTasks] = useState(() =>
+    readLocalStorage(
+      TASKS_STORAGE_KEY,
+      initialTasks,
+      parseStoredTasks
+    )
+  );
+
+  useEffect(() => {
+    writeLocalStorage(TASKS_STORAGE_KEY, tasks);
+  }, [tasks]);
 
   const value = useMemo(() => {
     const completedCount = tasks.filter((task) => task.done).length;
@@ -76,4 +90,32 @@ export function useTaskBoard() {
   }
 
   return context;
+}
+
+function parseStoredTasks(value: unknown) {
+  if (!Array.isArray(value)) {
+    return null;
+  }
+
+  const storedDoneById = new Map<string, boolean>();
+
+  for (const item of value) {
+    if (
+      typeof item !== "object" ||
+      item === null ||
+      !("id" in item) ||
+      !("done" in item) ||
+      typeof item.id !== "string" ||
+      typeof item.done !== "boolean"
+    ) {
+      return null;
+    }
+
+    storedDoneById.set(item.id, item.done);
+  }
+
+  return initialTasks.map((task) => ({
+    ...task,
+    done: storedDoneById.get(task.id) ?? task.done,
+  }));
 }

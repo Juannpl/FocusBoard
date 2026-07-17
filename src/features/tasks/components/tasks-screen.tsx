@@ -36,6 +36,9 @@ export function TasksScreen() {
         <p className="text-muted-foreground">
           Premier module local pour les taches quotidiennes.
         </p>
+        <p className="text-sm text-muted-foreground">
+          Les interactions sont sauvegardees dans ce navigateur.
+        </p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">

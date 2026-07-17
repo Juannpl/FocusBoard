@@ -3,6 +3,9 @@
 import { useEffect, useState } from "react";
 
 import type { FocusPreset } from "@/features/focus-sessions/types/focus-session";
+import { readLocalStorage, writeLocalStorage } from "@/lib/local-storage";
+
+const FOCUS_TIMER_STORAGE_KEY = "focusboard:focus-timer";
 
 type UseFocusTimerResult = {
   preset: FocusPreset;
@@ -15,11 +18,28 @@ type UseFocusTimerResult = {
   setPreset: (nextPreset: FocusPreset) => void;
 };
 
+type FocusTimerState = {
+  preset: FocusPreset;
+  remainingSeconds: number;
+  isRunning: boolean;
+  completedSessions: number;
+};
+
 export function useFocusTimer(initialPreset: FocusPreset = 25): UseFocusTimerResult {
-  const [preset, setPresetState] = useState<FocusPreset>(initialPreset);
-  const [remainingSeconds, setRemainingSeconds] = useState(initialPreset * 60);
-  const [isRunning, setIsRunning] = useState(false);
-  const [completedSessions, setCompletedSessions] = useState(0);
+  const [timerState, setTimerState] = useState<FocusTimerState>(() =>
+    readLocalStorage(
+      FOCUS_TIMER_STORAGE_KEY,
+      {
+        preset: initialPreset,
+        remainingSeconds: initialPreset * 60,
+        completedSessions: 0,
+        isRunning: false,
+      },
+      parseStoredFocusTimer
+    )
+  );
+
+  const { preset, remainingSeconds, isRunning, completedSessions } = timerState;
 
   useEffect(() => {
     if (!isRunning) {
@@ -27,38 +47,65 @@ export function useFocusTimer(initialPreset: FocusPreset = 25): UseFocusTimerRes
     }
 
     const interval = window.setInterval(() => {
-      setRemainingSeconds((current) => {
-        if (current <= 1) {
+      setTimerState((currentState) => {
+        if (currentState.remainingSeconds <= 1) {
           window.clearInterval(interval);
-          setIsRunning(false);
-          setCompletedSessions((count) => count + 1);
-          return 0;
+          return {
+            ...currentState,
+            remainingSeconds: 0,
+            isRunning: false,
+            completedSessions: currentState.completedSessions + 1,
+          };
         }
 
-        return current - 1;
+        return {
+          ...currentState,
+          remainingSeconds: currentState.remainingSeconds - 1,
+        };
       });
     }, 1000);
 
     return () => window.clearInterval(interval);
   }, [isRunning]);
 
+  useEffect(() => {
+    writeLocalStorage(FOCUS_TIMER_STORAGE_KEY, {
+      preset,
+      remainingSeconds,
+      completedSessions,
+      isRunning: false,
+    });
+  }, [completedSessions, preset, remainingSeconds]);
+
   function start() {
-    setIsRunning(true);
+    setTimerState((currentState) => ({
+      ...currentState,
+      isRunning: true,
+    }));
   }
 
   function pause() {
-    setIsRunning(false);
+    setTimerState((currentState) => ({
+      ...currentState,
+      isRunning: false,
+    }));
   }
 
   function reset() {
-    setIsRunning(false);
-    setRemainingSeconds(preset * 60);
+    setTimerState((currentState) => ({
+      ...currentState,
+      isRunning: false,
+      remainingSeconds: currentState.preset * 60,
+    }));
   }
 
   function setPreset(nextPreset: FocusPreset) {
-    setPresetState(nextPreset);
-    setIsRunning(false);
-    setRemainingSeconds(nextPreset * 60);
+    setTimerState((currentState) => ({
+      ...currentState,
+      preset: nextPreset,
+      isRunning: false,
+      remainingSeconds: nextPreset * 60,
+    }));
   }
 
   return {
@@ -70,5 +117,34 @@ export function useFocusTimer(initialPreset: FocusPreset = 25): UseFocusTimerRes
     pause,
     reset,
     setPreset,
+  };
+}
+
+function parseStoredFocusTimer(value: unknown) {
+  if (
+    typeof value !== "object" ||
+    value === null ||
+    !("preset" in value) ||
+    !("remainingSeconds" in value) ||
+    !("completedSessions" in value)
+  ) {
+    return null;
+  }
+
+  const { preset, remainingSeconds, completedSessions } = value;
+
+  if (
+    (preset !== 25 && preset !== 45 && preset !== 60) ||
+    typeof remainingSeconds !== "number" ||
+    typeof completedSessions !== "number"
+  ) {
+    return null;
+  }
+
+  return {
+    preset: preset as FocusPreset,
+    remainingSeconds,
+    completedSessions,
+    isRunning: false,
   };
 }

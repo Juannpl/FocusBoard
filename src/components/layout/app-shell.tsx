@@ -10,7 +10,15 @@ const navigation = [
   { href: "/tasks", label: "Taches" },
 ];
 
-export function AppShell({ children }: { children: ReactNode }) {
+export function AppShell({
+  children,
+  onSignOut,
+  userEmail,
+}: {
+  children: ReactNode;
+  onSignOut?: () => Promise<void>;
+  userEmail?: string | null;
+}) {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <aside className="fixed inset-y-0 left-0 hidden w-64 border-r border-border/60 bg-card lg:block">
@@ -36,6 +44,25 @@ export function AppShell({ children }: { children: ReactNode }) {
               </Link>
             ))}
           </nav>
+          <div className="mt-auto space-y-3 border-t border-border/60 pt-4">
+            {userEmail ? (
+              <p className="text-sm text-muted-foreground">{userEmail}</p>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                Auth locale non configuree
+              </p>
+            )}
+            {onSignOut ? (
+              <form action={onSignOut}>
+                <button
+                  type="submit"
+                  className="text-sm text-muted-foreground underline"
+                >
+                  Se deconnecter
+                </button>
+              </form>
+            ) : null}
+          </div>
         </div>
       </aside>
 
@@ -43,6 +70,9 @@ export function AppShell({ children }: { children: ReactNode }) {
         <Link href="/dashboard" className="text-lg font-semibold tracking-tight">
           FocusBoard
         </Link>
+        {userEmail ? (
+          <p className="mt-2 text-sm text-muted-foreground">{userEmail}</p>
+        ) : null}
         <nav className="mt-4 flex flex-wrap gap-2">
           {navigation.map((item) => (
             <Link
@@ -54,6 +84,16 @@ export function AppShell({ children }: { children: ReactNode }) {
             </Link>
           ))}
         </nav>
+        {onSignOut ? (
+          <form action={onSignOut} className="mt-4">
+            <button
+              type="submit"
+              className="text-sm text-muted-foreground underline"
+            >
+              Se deconnecter
+            </button>
+          </form>
+        ) : null}
       </div>
 
       <div className="lg:pl-64">

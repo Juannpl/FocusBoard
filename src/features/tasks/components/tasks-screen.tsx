@@ -1,21 +1,33 @@
+"use client";
+
+import { useState } from "react";
+
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress, ProgressLabel } from "@/components/ui/progress";
-
-import {
-  dailyTasks,
-  getCompletedTaskCount,
-  getPriorityTasks,
-  getSecondaryTasks,
-  getTaskCompletionPercent,
-} from "@/features/tasks/data/daily-tasks";
+import { useTaskBoard } from "@/features/tasks/providers/task-board-provider";
 
 import { DailyTaskList } from "./daily-task-list";
 
 export function TasksScreen() {
-  const priorityTasks = getPriorityTasks();
-  const secondaryTasks = getSecondaryTasks();
-  const completedTasks = getCompletedTaskCount();
-  const completionPercent = getTaskCompletionPercent();
+  const {
+    tasks,
+    completedCount,
+    completionPercent,
+    priorityTasks,
+    secondaryTasks,
+    toggleTask,
+    resetTasks,
+    clearCompleted,
+  } = useTaskBoard();
+  const [showCompleted, setShowCompleted] = useState(true);
+
+  const displayedPriorityTasks = showCompleted
+    ? priorityTasks
+    : priorityTasks.filter((task) => !task.done);
+  const displayedSecondaryTasks = showCompleted
+    ? secondaryTasks
+    : secondaryTasks.filter((task) => !task.done);
 
   return (
     <div className="grid gap-6">
@@ -32,7 +44,7 @@ export function TasksScreen() {
             <CardTitle>Total du jour</CardTitle>
           </CardHeader>
           <CardContent className="text-3xl font-semibold">
-            {dailyTasks.length}
+            {tasks.length}
           </CardContent>
         </Card>
 
@@ -50,7 +62,7 @@ export function TasksScreen() {
             <CardTitle>Terminees</CardTitle>
           </CardHeader>
           <CardContent className="text-3xl font-semibold">
-            {completedTasks}
+            {completedCount}
           </CardContent>
         </Card>
       </div>
@@ -67,13 +79,29 @@ export function TasksScreen() {
         </CardContent>
       </Card>
 
+      <div className="flex flex-wrap gap-3">
+        <Button
+          variant="outline"
+          onClick={() => setShowCompleted((current) => !current)}
+        >
+          {showCompleted ? "Masquer les terminees" : "Afficher tout"}
+        </Button>
+        <Button variant="outline" onClick={clearCompleted}>
+          Reouvrir les terminees
+        </Button>
+        <Button onClick={resetTasks}>Reinitialiser la journee</Button>
+      </div>
+
       <div className="grid gap-6 xl:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle>Top priorites</CardTitle>
           </CardHeader>
           <CardContent>
-            <DailyTaskList tasks={priorityTasks} />
+            <DailyTaskList
+              tasks={displayedPriorityTasks}
+              onToggle={toggleTask}
+            />
           </CardContent>
         </Card>
 
@@ -82,7 +110,10 @@ export function TasksScreen() {
             <CardTitle>Taches secondaires</CardTitle>
           </CardHeader>
           <CardContent>
-            <DailyTaskList tasks={secondaryTasks} />
+            <DailyTaskList
+              tasks={displayedSecondaryTasks}
+              onToggle={toggleTask}
+            />
           </CardContent>
         </Card>
       </div>

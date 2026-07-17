@@ -38,6 +38,9 @@ export function FocusTimerCard() {
           <p className="text-sm text-muted-foreground">
             {isRunning ? "Session en cours" : "Pret a demarrer"}
           </p>
+          <p className="text-sm text-muted-foreground">
+            L&apos;etat du minuteur est sauvegarde localement.
+          </p>
         </div>
 
         <FocusSessionControls

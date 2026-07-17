@@ -1,15 +1,17 @@
+"use client";
+
 import Link from "next/link";
 
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
-import { getPriorityTasks } from "@/features/tasks/data/daily-tasks";
+import { useTaskBoard } from "@/features/tasks/providers/task-board-provider";
 
 import { DailyTaskList } from "./daily-task-list";
 
 export function TodayPrioritiesCard() {
-  const priorityTasks = getPriorityTasks();
+  const { priorityTasks, toggleTask } = useTaskBoard();
 
   return (
     <Card className="max-w-3xl">
@@ -21,11 +23,11 @@ export function TodayPrioritiesCard() {
           <div>
             <h2 className="text-lg font-medium">Priorites du jour</h2>
             <p className="text-sm text-muted-foreground">
-              Trois taches locales pour cadrer la journee.
+              Taches interactives partagees avec la page detaillee.
             </p>
           </div>
 
-          <DailyTaskList tasks={priorityTasks} />
+          <DailyTaskList tasks={priorityTasks} onToggle={toggleTask} />
         </div>
 
         <div className="flex flex-col gap-3 sm:flex-row">
